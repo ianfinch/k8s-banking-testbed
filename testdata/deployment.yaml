@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: testdata
+  labels:
+    app: testdata
+spec:
+    replicas: 2
+    selector:
+      matchLabels:
+        app: testdata-pod
+    template:
+      metadata:
+        labels:
+          app: testdata-pod
+      spec:
+        containers:
+        - name: testdata
+          image: k3d-banking-registry:5000/banking-testdata:local
+          ports:
+          - containerPort: 3000

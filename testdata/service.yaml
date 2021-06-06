@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: testdata
+  name: testdata-service
+spec:
+  ports:
+  - port: 3000
+    targetPort: 3000
+  selector:
+    app: testdata-pod
+  type: ClusterIP
