@@ -34,10 +34,10 @@ const db = {
 };
 
 /**
- * Remove internal fields (starting '___') from an object
+ * Remove internal fields (starting with an underscore) from an object
  */
 const removeInternalFields = obj => Object.keys(obj).reduce((result, field) => {
-    if (field.substr(0, 3) !== "___") {
+    if (field.substr(0, 1) !== "_") {
         result[field] = obj[field];
     }
     return result;
@@ -46,21 +46,19 @@ const removeInternalFields = obj => Object.keys(obj).reduce((result, field) => {
 /**
  * Initialise the server from the test data service
  */
-const initialiseData = () => {
+const initialiseData = (collection) => {
 
-    if (!db.data) {
-        axios.get("http://testdata-service/testdata/customers")
-            .then(response => {
-                db.data = TAFFY(response.data);
-                db.errorMessage = null;
-                log.info("TESTDATA LOAD: Successfully loaded");
-            })
-            .catch(error => {
-                log.error("TESTDATA LOAD: " + error.toString());
-                db.errorMessage = "Customer service not available";
-            });
-        db.lastUpdated = Date.now();
-    }
+    axios.get("http://testdata-service/testdata/" + collection)
+        .then(response => {
+            db.data = TAFFY(response.data);
+            db.errorMessage = null;
+            log.info("TESTDATA LOAD: Successfully loaded");
+        })
+        .catch(error => {
+            log.error("TESTDATA LOAD: " + error.toString());
+            db.errorMessage = collection + " service not available";
+        });
+    db.lastUpdated = Date.now();
 };
 
 /**
@@ -82,30 +80,36 @@ const dbQuery = () => {
 };
 
 /**
- * Handle the top-level request to our server, which returns the list of customers
- */
-app.get("/customers", (req, res) => {
-    const queryResult = dbQuery();
-    res.status(queryResult.status).send(queryResult.data);
-});
-
-/**
  * Poll the test data service until we get some data
  */
-const pollTestData = () => {
+const pollTestData = (collection) => {
 
-    initialiseData();
+    initialiseData(collection);
     if (!db.data) {
         setTimeout(() => {
-            pollTestData();
+            pollTestData(collection);
         }, 3000);
     }
 };
-pollTestData();
 
 /**
- * Start our server
+ * Create and start our server
  */
-app.listen(port, () => {
-    log.info("Server listening at " + server);
-});
+const restServer = (collection) => {
+
+    // Populate the data
+    pollTestData(collection);
+
+    // Handle the top-level request to our server
+    app.get("/" + collection, (req, res) => {
+        const queryResult = dbQuery();
+        res.status(queryResult.status).send(queryResult.data);
+    });
+
+    // Start the server
+    app.listen(port, () => {
+        log.info("Server listening at " + server);
+    });
+};
+
+export { restServer };

@@ -9,10 +9,7 @@ if [[ "$registryPort" == "" ]] ; then
     exit 1
 fi
 
-declare -a images=(
-    "guzo/banking-customer"
-    "guzo/banking-testdata"
-)
+. ./cluster/images.sh
 
 for image in "${images[@]}" ; do
     imageName=$( echo $image | cut -d'/' -f2 )
