@@ -10,6 +10,7 @@ if [[ "$registryPort" == "" ]] ; then
 fi
 
 declare -a images=(
+    "guzo/banking-customer"
     "guzo/banking-testdata"
 )
 

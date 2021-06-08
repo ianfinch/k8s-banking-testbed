@@ -4,10 +4,19 @@ import { v4 as uuid } from "uuid";
 import faker from "faker";
 
 /**
+ * Enrich log messages with timestamp and host
+ */
+const log = {
+    format: (level, msg) => (new Date().toISOString()) + " " + level + " [" + process.env["HOSTNAME"] + "] " + msg,
+    info: (msg) => console.log(log.format("INFO ", msg)),
+    error: (msg) => console.error(log.format("ERROR", msg))
+};
+
+/**
  * Allow Control-C interrupt
  */
 process.on("SIGINT", () => {
-    console.log("Server received interrupt signal");
+    log.info("Server received interrupt signal");
     process.exit();
 });
 
@@ -75,16 +84,6 @@ const createRecord = (recordType, initialRecord) => Object.keys(recordType).redu
 }, initialRecord);
 
 /**
- * Remove internal fields (starting '___') from an object
- */
-const removeInternalFields = obj => Object.keys(obj).reduce((result, field) => {
-    if (field.substr(0, 3) !== "___") {
-        result[field] = obj[field];
-    }
-    return result;
-}, {});
-
-/**
  * Create the collections in the database
  */
 const db = {
@@ -97,7 +96,7 @@ const db = {
 /**
  * Handle the top-level request to our server, which just returns a list of the available collections
  */
-app.get("/", (req, res) => {
+app.get("/testdata", (req, res) => {
     res.send({
         collections: Object.keys(db),
         _links: Object.keys(db).map(x => `${server}/${x}`)
@@ -107,7 +106,7 @@ app.get("/", (req, res) => {
 /**
  * Handle a request for a specific collection
  */
-app.get("/:collection", (req, res) => {
+app.get("/testdata/:collection", (req, res) => {
 
     if (!db[req.params.collection]) {
         res.sendStatus(404);
@@ -121,5 +120,5 @@ app.get("/:collection", (req, res) => {
  * Start our server
  */
 app.listen(port, () => {
-    console.log(`Server listening at ${server}`);
+    log.info("Server listening at " + server);
 });
