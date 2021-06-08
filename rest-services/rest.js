@@ -34,10 +34,10 @@ const db = {
 };
 
 /**
- * Remove internal fields (starting with an underscore) from an object
+ * Remove internal fields (starting with three underscores) from an object
  */
 const removeInternalFields = obj => Object.keys(obj).reduce((result, field) => {
-    if (field.substr(0, 1) !== "_") {
+    if (field.substr(0, 3) !== "___") {
         result[field] = obj[field];
     }
     return result;
@@ -64,7 +64,7 @@ const initialiseData = (collection) => {
 /**
  * Execute a database query and return a result
  */
-const dbQuery = () => {
+const dbQuery = (query) => {
 
     if (db.errorMessage) {
         return {
@@ -72,6 +72,13 @@ const dbQuery = () => {
             data: db.errorMessage
         };
     };
+
+    if (query) {
+        return {
+            status: 200,
+            data: db.data(query).map(removeInternalFields)
+        };
+    }
 
     return {
         status: 200,
@@ -104,6 +111,33 @@ const restServer = (collection) => {
     app.get("/" + collection, (req, res) => {
         const queryResult = dbQuery();
         res.status(queryResult.status).send(queryResult.data);
+    });
+
+    // Handle a request for a specific item from a collection
+    app.get("/" + collection + "/:id", (req, res) => {
+
+        const pk = collection.replace(/s$/, "Id");
+        const queryResult = dbQuery({[pk]: req.params.id});
+
+        if (queryResult.data.length === 0) {
+            res.sendStatus(404);
+        } else {
+            res.status(queryResult.status).send(queryResult.data[0]);
+        }
+    });
+
+    // Handle a request for related resources
+    app.get("/" + collection + "/:id/:related", (req, res) => {
+
+        const pk = collection.replace(/s$/, "Id");
+        const queryResult = dbQuery({[pk]: req.params.id});
+
+        if (queryResult.data.length === 0) {
+            res.sendStatus(404);
+            return;
+        }
+
+        res.status(200).send("TO BE IMPLEMENTED");
     });
 
     // Start the server
