@@ -84,14 +84,43 @@ const createRecord = (recordType, initialRecord) => Object.keys(recordType).redu
 }, initialRecord);
 
 /**
+ * Given two collections, assign members of the second to the first
+ *
+ * Assumption is that this is a many to one mapping
+ */
+const linkCollections = (primary, pk, secondary, fk) => {
+    const fkFromPrimary = "_" + fk + "s";
+    const fkFromSecondary = "_" + pk + "s";
+
+    secondary().select(fk).forEach(sourceItem => {
+
+        const primaryIds = primary();
+        let selectionList = primaryIds.map(x => x[fkFromPrimary] ? null : x[pk]).filter(x => x);
+        if (selectionList.length === 0) {
+            selectionList = primaryIds.map(x => x[pk]);
+        }
+        const targetItem = selectionList[Math.floor(selectionList.length * Math.random())];
+
+        // Add the secondary to an array of foreign keys in the primary
+        const primaryLinks = primary({[pk]: targetItem}).select(fkFromPrimary)[0] || [];
+        primaryLinks.push(sourceItem);
+        primary({[pk]: targetItem}).update({[fkFromPrimary]: primaryLinks});
+
+        // Add the primary as a foreign key from the secondary
+        secondary({[fk]: sourceItem}).update({[fkFromSecondary]: targetItem});
+    });
+};
+
+/**
  * Create the collections in the database
  */
 const db = {
     customers: TAFFY(uuidList("customerId", 100).map(uuidObject => createRecord(person, uuidObject))),
-    contacts: TAFFY(uuidList("contactId", 100).map(uuidObject => createRecord(contactDetails, uuidObject))),
+    contacts: TAFFY(uuidList("contactId", 120).map(uuidObject => createRecord(contactDetails, uuidObject))),
     accounts: TAFFY(uuidList("accountId", 150).map(uuidObject => createRecord(account, uuidObject))),
     transactions: TAFFY(uuidList("transactionId", 3000).map(uuidObject => createRecord(transaction, uuidObject)))
 };
+linkCollections(db.customers, "customerId", db.contacts, "contactId");
 
 /**
  * Handle the top-level request to our server, which just returns a list of the available collections

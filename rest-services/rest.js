@@ -34,10 +34,10 @@ const db = {
 };
 
 /**
- * Remove internal fields (starting with three underscores) from an object
+ * Remove internal fields (starting with underscores) from an object
  */
 const removeInternalFields = obj => Object.keys(obj).reduce((result, field) => {
-    if (field.substr(0, 3) !== "___") {
+    if (field.substr(0, 1) !== "_") {
         result[field] = obj[field];
     }
     return result;
@@ -130,14 +130,21 @@ const restServer = (collection) => {
     app.get("/" + collection + "/:id/:related", (req, res) => {
 
         const pk = collection.replace(/s$/, "Id");
-        const queryResult = dbQuery({[pk]: req.params.id});
+        const queryResult = db.data({[pk]: req.params.id}).map(x => x);
 
-        if (queryResult.data.length === 0) {
+        if (queryResult.length === 0) {
             res.sendStatus(404);
             return;
         }
 
-        res.status(200).send("TO BE IMPLEMENTED");
+        const fk = "_" + req.params.related.replace(/s$/, "Ids");
+        const subQueryResult = queryResult[0][fk];
+        if (!subQueryResult) {
+            res.sendStatus(404);
+            return;
+        }
+
+        res.status(200).send(subQueryResult);
     });
 
     // Start the server
