@@ -1,4 +1,5 @@
 import express from "express";
+import morgan from "morgan";
 import { taffy as TAFFY } from "taffydb";
 import axios from "axios";
 
@@ -25,6 +26,7 @@ process.on("SIGINT", () => {
 const port = 3000;
 const server = `http://localhost:${port}`;
 const app = express();
+app.use(morgan("combined"));
 
 // Placeholder for database
 const db = {

@@ -16,6 +16,9 @@ k3d cluster create --config ./cluster/config.yaml
 
 kubectl apply -f cluster/ingress.yaml
 
+kubectl apply -f frontend/service.yaml
+kubectl apply -f frontend/deployment.yaml
+
 kubectl apply -f testdata/service.yaml
 kubectl apply -f testdata/deployment.yaml
 
