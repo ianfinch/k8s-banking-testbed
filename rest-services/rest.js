@@ -26,7 +26,7 @@ process.on("SIGINT", () => {
 const port = 3000;
 const server = `http://localhost:${port}`;
 const app = express();
-app.use(morgan("combined"));
+app.use(morgan(":date[iso] :status   [" + process.env["HOSTNAME"] + "] :method :url HTTP/:http-version :res[content-length]"));
 
 // Placeholder for database
 const db = {
@@ -119,12 +119,16 @@ const restServer = (collection) => {
     app.get("/" + collection + "/:id", (req, res) => {
 
         const pk = collection.replace(/s$/, "Id");
-        const queryResult = dbQuery({[pk]: req.params.id});
+        const queryResult = dbQuery({[pk]: req.params.id.split(",")});
 
         if (queryResult.data.length === 0) {
             res.sendStatus(404);
         } else {
-            res.status(queryResult.status).send(queryResult.data[0]);
+            if (req.params.id.includes(",")) {
+                res.status(queryResult.status).send(queryResult.data);
+            } else {
+                res.status(queryResult.status).send(queryResult.data[0]);
+            }
         }
     });
 
