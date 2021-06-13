@@ -25,6 +25,9 @@ kubectl apply -f testdata/deployment.yaml
 kubectl apply -f rest-services/instances/customer-service.yaml
 kubectl apply -f rest-services/instances/customer-deployment.yaml
 
+kubectl apply -f tests/service.yaml
+kubectl apply -f tests/deployment.yaml
+
 echo -n "Waiting for ingress to be created: "
 ingressPod=""
 while [[ "$ingressPod" == "" ]] ; do

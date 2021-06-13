@@ -97,8 +97,8 @@ const createTable = (definition)  => {
  * Initialise everything
  */
 const initialise = () => {
-    initialiseTables();
     initialiseButtons();
+    return initialiseTables();
 };
 
 /**
@@ -167,7 +167,7 @@ const displayCustomers = () => {
     displayElement("customer-table");
     hideElement("customer-details");
     hideElement("close-customer-details");
-    tables.customers.redraw(true);
+//    tables.customers.redraw(true);
 };
 
 /**

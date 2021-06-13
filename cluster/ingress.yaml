@@ -29,3 +29,10 @@ spec:
                 name: testdata-service
                 port:
                   number: 80
+          - path: /tests
+            pathType: Prefix
+            backend:
+              service:
+                name: tests-service
+                port:
+                  number: 80

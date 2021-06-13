@@ -84,10 +84,6 @@ footer {
     color: var(--colour-background);
 }
 
-.tabulator {
-    max-width: 600px;
-}
-
 .tabulator-cell > button, #close-customer-details {
     background: var(--colour-highlight);
     foreground: var(--colour-foreground);
