@@ -13,11 +13,17 @@ process.on("SIGINT", () => {
 });
 
 const port = 3000;
+const apiPort = 8080;
 const server = `http://localhost:${port}`;
 const app = express();
 
 // Serve static files from the "public" folder
 app.use(express.static("public"));
+
+// Change the port to the API port
+const proxyRouter = (req) => {
+    return "http://" + req.headers.host.replace(":" + port, ":" + apiPort);
+};
 
 // Proxy requests to a backend to avoid CORS restrictions
 //
@@ -25,7 +31,8 @@ app.use(express.static("public"));
 // and call services in the kubernetes cluster (and not need to rebuild and
 // redeploy on every change)
 if (process.argv.includes("WITH_BACKEND_PROXY")) {
-    app.use("/customers", createProxyMiddleware({ target: "http://localhost:8080" }));
+    log.info("Backend proxy enabled");
+    app.use("/customers", createProxyMiddleware({ router: proxyRouter }));
 }
 
 // Start the server

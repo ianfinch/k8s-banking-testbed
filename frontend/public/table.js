@@ -2,7 +2,7 @@
  * Set the text within the h2 heading
  */
 const setH2Text = (text) => {
-    document.getElementsByTagName("h2")[0].innerText = text;
+    document.getElementById("sectionHeading").innerText = text;
 };
 
 /**
@@ -13,14 +13,40 @@ const viewButton = (cell, formatterParams, onRendered) => {
 };
 
 /**
+ * Shortcut to display a hidden element
+ */
+const displayElement = (id) => {
+    const elem = document.getElementById(id);
+    if (elem.tagName === "BUTTON") {
+        elem.style.display = "inline";
+    } else {
+        elem.style.display = "block";
+    }
+};
+
+/**
+ * Shortcut to hide an element
+ */
+const hideElement = (id) => {
+    document.getElementById(id).style.display = "none";
+};
+
+/**
  * Action to view a customer
  */
 const viewCustomer = (e, cell) => {
     const data = cell.getRow().getData();
     setH2Text(["Customer:", data.title, data.firstName, data.lastName].join(" "));
-    document.getElementById("customer-table").style.display = "none";
-    document.getElementById("customer-details").style.display = "block";
+    hideElement("customer-table");
+    displayElement("customer-details");
+    displayElement("close-customer-details");
     tables.contacts.setData("/customers/" + data.customerId + "/contacts");
+};
+
+/**
+ * Action to close the customer details
+ */
+const closeCustomerDetails = () => {
 };
 
 /**
@@ -61,15 +87,24 @@ const createTable = (definition)  => {
         pagination: "local",
         paginationSize: 10,
         ajaxURL: definition.url,
-        layout: "fitDataTable",
- 	    columns: createTableColumns(definition)
+        layout: "fitColumns",
+ 	    columns: createTableColumns(definition),
+        placeholder: "No data available"
     });
+};
+
+/**
+ * Initialise everything
+ */
+const initialise = () => {
+    initialiseTables();
+    initialiseButtons();
 };
 
 /**
  * Initialise the tables
  */
-const initialise = () => {
+const initialiseTables = () => {
 
     const tables = {
         customers: createTable({
@@ -110,6 +145,66 @@ const initialise = () => {
 }
 
 /**
+ * Set up button listeners
+ */
+const initialiseButtons = () => {
+
+    document.getElementById("close-customer-details").addEventListener("click", () => {
+        displayCustomers();
+    });
+};
+
+/**
  * A variable to reference all our tables
  */
 const tables = initialise();
+
+/**
+ * Display the customers pane
+ */
+const displayCustomers = () => {
+    setH2Text("Customers");
+    displayElement("customer-table");
+    hideElement("customer-details");
+    hideElement("close-customer-details");
+    tables.customers.redraw(true);
+};
+
+/**
+ * Display the accounts pane
+ */
+const displayAccounts = () => {
+    setH2Text("Accounts");
+    hideElement("customer-table");
+    hideElement("customer-details");
+    hideElement("close-customer-details");
+};
+
+/**
+ * Take action based on the URL
+ */
+const analyseUrl = () => {
+
+    if (window.location.href.endsWith("#customers")) {
+        displayCustomers();
+
+    } else if (window.location.href.endsWith("#accounts")) {
+        displayAccounts();
+
+    } else {
+        displayCustomers();
+    }
+};
+
+
+/**
+ * Hang actions off of URL changes
+ */
+window.addEventListener("popstate", () => {
+    analyseUrl();
+});
+
+/**
+ * Start things off by looking at the URL
+ */
+analyseUrl();

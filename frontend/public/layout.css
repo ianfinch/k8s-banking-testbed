@@ -42,6 +42,31 @@ header > h1 {
     padding: 16px;
 }
 
+.nav > ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav > ul > li {
+    display: block;
+    border-color: var(--colour-background2);
+    border-width: 0 0 1px 0;
+    border-style: solid;
+    padding: 0 0 16px 0;
+    margin: 0 0 16px 0;
+}
+
+.nav > ul > li > a {
+    color: var(--colour-background);
+    text-decoration: none;
+}
+
+.nav > ul > li > a:hover {
+    color: var(--colour-highlight);
+    text-decoration: underline;
+}
+
 .content {
     grid-area: main;
     background: var(--colour-background);
@@ -59,7 +84,7 @@ footer {
     color: var(--colour-background);
 }
 
-.tabulator-cell > button {
+.tabulator-cell > button, #close-customer-details {
     background: var(--colour-highlight);
     foreground: var(--colour-foreground);
     border: 1px solid var(--colour-foreground);
@@ -74,6 +99,6 @@ footer {
     background: var(--colour-highlight2);
 }
 
-#customer-details {
+#customer-table, #customer-details, #close-customer-details {
     display: none;
 }
