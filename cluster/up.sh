@@ -10,11 +10,13 @@ fi
 
 startTime=$( date '+%s' )
 
-k3d cluster create --config ./cluster/config.yaml
+k3d cluster create --config ./cluster/config.yaml --k3s-server-arg "--no-deploy=traefik"
+istioctl install --set profile=default -y
+kubectl label namespace default istio-injection=enabled
+kubectl apply -f cluster/ingress.yaml
+
 ./cluster/build-containers.sh
 ./cluster/populate-registry.sh
-
-kubectl apply -f cluster/ingress.yaml
 
 kubectl apply -f frontend/service.yaml
 kubectl apply -f frontend/deployment.yaml
@@ -33,7 +35,7 @@ ingressPod=""
 while [[ "$ingressPod" == "" ]] ; do
     echo -n "."
     sleep 5
-    ingressPod=$( kubectl get pods -n kube-system | grep '^traefik' | cut -d' ' -f1 )
+    ingressPod=$( kubectl get pods -n istio-system | grep '^istio-ingressgateway' | cut -d' ' -f1 )
 done
 echo " $ingressPod"
 
@@ -42,7 +44,7 @@ podRunning=""
 while [[ "$podRunning" == "" ]] ; do
     echo -n "."
     sleep 5
-    podRunning=$( kubectl get pods -n kube-system $ingressPod | grep "1/1" )
+    podRunning=$( kubectl get pods -n istio-system $ingressPod | grep "1/1" )
 done
 echo " Running"
 

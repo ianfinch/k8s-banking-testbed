@@ -8,6 +8,7 @@ spec:
   ports:
   - port: 80
     targetPort: 3000
+    appProtocol: http
   selector:
     app: customer-pod
   type: ClusterIP

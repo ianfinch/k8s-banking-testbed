@@ -1,38 +1,57 @@
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
 metadata:
-  name: banking-ingress
-  annotations:
-    ingress.kubernetes.io/ssl-redirect: "false"
+  name: banking-gateway
 spec:
-  rules:
-    - http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: frontend-service
-                port:
-                  number: 80
-          - path: /customer
-            pathType: Prefix
-            backend:
-              service:
-                name: customer-service
-                port:
-                  number: 80
-          - path: /testdata
-            pathType: Prefix
-            backend:
-              service:
-                name: testdata-service
-                port:
-                  number: 80
-          - path: /tests
-            pathType: Prefix
-            backend:
-              service:
-                name: tests-service
-                port:
-                  number: 80
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: banking
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - banking-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /customer
+    route:
+    - destination:
+        host: customer-service
+        port:
+          number: 80
+  - match:
+    - uri:
+        prefix: /tests
+    route:
+    - destination:
+        host: tests-service
+        port:
+          number: 80
+  - match:
+    - uri:
+        prefix: /testdata
+    route:
+    - destination:
+        host: testdata-service
+        port:
+          number: 80
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: frontend-service
+        port:
+          number: 80
