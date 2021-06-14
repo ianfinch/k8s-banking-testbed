@@ -25,10 +25,18 @@ spec:
   http:
   - match:
     - uri:
-        prefix: /customer
+        prefix: /customers
     route:
     - destination:
         host: customer-service
+        port:
+          number: 80
+  - match:
+    - uri:
+        prefix: /contacts
+    route:
+    - destination:
+        host: contacts-service
         port:
           number: 80
   - match:

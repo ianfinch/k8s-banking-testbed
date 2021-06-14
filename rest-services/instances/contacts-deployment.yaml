@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: contacts
+  labels:
+    app: contacts
+spec:
+    replicas: 3
+    selector:
+      matchLabels:
+        app: contacts-pod
+    template:
+      metadata:
+        labels:
+          app: contacts-pod
+          project: banking
+      spec:
+        containers:
+        - name: contacts
+          image: k3d-banking-registry:5000/banking-contacts:local
+          ports:
+          - containerPort: 3000

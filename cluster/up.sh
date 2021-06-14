@@ -27,6 +27,9 @@ kubectl apply -f testdata/deployment.yaml
 kubectl apply -f rest-services/instances/customer-service.yaml
 kubectl apply -f rest-services/instances/customer-deployment.yaml
 
+kubectl apply -f rest-services/instances/contacts-service.yaml
+kubectl apply -f rest-services/instances/contacts-deployment.yaml
+
 kubectl apply -f tests/service.yaml
 kubectl apply -f tests/deployment.yaml
 

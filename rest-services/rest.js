@@ -162,7 +162,6 @@ const getRelatedItems = (collection, req, res) => {
     res.status(200).send(subQueryResult);
 };
 
-
 /**
  * Create and start our server
  *

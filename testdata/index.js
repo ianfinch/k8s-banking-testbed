@@ -106,8 +106,10 @@ const linkCollections = (primary, pk, secondary, fk) => {
         primaryLinks.push(sourceItem);
         primary({[pk]: targetItem}).update({[fkFromPrimary]: primaryLinks});
 
-        // Add the primary as a foreign key from the secondary
-        secondary({[fk]: sourceItem}).update({[fkFromSecondary]: targetItem});
+        // Add the primary to an array of foreign keys from the secondary
+        const secondaryLinks = secondary({[fk]: sourceItem}).select(fkFromSecondary)[0] || [];
+        secondaryLinks.push(targetItem);
+        secondary({[fk]: sourceItem}).update({[fkFromSecondary]: secondaryLinks});
     });
 };
 
