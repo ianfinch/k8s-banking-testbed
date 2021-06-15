@@ -2,12 +2,14 @@ import express from "express";
 import morgan from "morgan";
 import { taffy as TAFFY } from "taffydb";
 import axios from "axios";
+import dns from "dns";
 
 /**
  * Set up server
  */
 const port = 3000;
 const server = `http://localhost:${port}`;
+var dataServer = "testdata-service";
 const logFormat = ":date[iso] :status   [" + process.env["HOSTNAME"] + "] :method :url HTTP/:http-version :res[content-length]";
 
 /**
@@ -21,6 +23,7 @@ const db = { data: null, lastUpdated: null, errorMessage: null };
 const log = {
     format: (level, msg) => (new Date().toISOString()) + " " + level + " [" + process.env["HOSTNAME"] + "] " + msg,
     info: (msg) => console.log(log.format("INFO ", msg)),
+    warn: (msg) => console.warn(log.format("WARN ", msg)),
     error: (msg) => console.error(log.format("ERROR", msg))
 };
 
@@ -47,17 +50,19 @@ const removeInternalFields = obj => Object.keys(obj).reduce((result, field) => {
  */
 const initialiseData = (collection) => {
 
-    axios.get("http://testdata-service/testdata/" + collection)
+    return axios.get("http://" + dataServer + "/testdata/" + collection)
         .then(response => {
             db.data = TAFFY(response.data);
             db.errorMessage = null;
-            log.info("TESTDATA LOAD: Successfully loaded");
+            db.lastUpdated = Date.now();
+            log.info("TESTDATA LOAD (" + JSON.stringify(dataServer) + "): Successfully loaded");
+            return true;
         })
         .catch(error => {
-            log.error("TESTDATA LOAD: " + error.toString());
+            log.warn("TESTDATA LOAD (" + JSON.stringify(dataServer) + "): " + error.toString());
             db.errorMessage = collection + " service not available";
+            return false;
         });
-    db.lastUpdated = Date.now();
 };
 
 /**
@@ -86,16 +91,36 @@ const dbQuery = (query) => {
 };
 
 /**
+ * Create a promise from a timeout
+ */
+const timeoutPromise = (millis) => {
+    return new Promise(resolve => {
+        setTimeout(() => resolve(true), millis);
+    });
+};
+
+/**
  * Poll the test data service until we get some data
  */
-const populateTestData = (collection) => {
+const populateTestData = (collection, depth = 1) => {
+    const maxTries = 5;
 
-    initialiseData(collection);
-    if (!db.data) {
-        setTimeout(() => {
-            populateTestData(collection);
-        }, 3000);
+    // Circuitbreaker
+    if (depth > maxTries) {
+        log.error("Unable to populate test data, exceeded maximum tries: " + maxTries);
+        return;
     }
+
+    // Wait for the longest of a data fetch attempt and a delay timer, then if
+    // we've got nothing by that time, try again
+    Promise.all([
+        initialiseData(collection),
+        timeoutPromise(1000)
+    ]).then(([data, timeout]) => {
+        if (!data) {
+            populateTestData(collection, depth + 1);
+        }
+    });
 };
 
 /**
@@ -163,6 +188,23 @@ const getRelatedItems = (collection, req, res) => {
 };
 
 /**
+ * Check test data server exists (and fall back to localhost if not)
+ */
+const checkDataServer = () => {
+    dns.lookup(dataServer, (error, result) => {
+        if (error) {
+            const localServer = "localhost:8080";
+            log.warn("Unable to resolve data server (" + dataServer + "): " + error.code);
+//            dataServer = localServer;
+            log.warn("Switched to alternative data server: " + localServer);
+        } else {
+            log.info("Data server address resolved: " + dataServer + " = " + result);
+        }
+    });
+};
+
+
+/**
  * Create and start our server
  *
  * 1) Make API call to testdata service to populate the data
@@ -172,8 +214,6 @@ const getRelatedItems = (collection, req, res) => {
  *
  */
 const restServer = (collection) => {
-
-    populateTestData(collection);
 
     const app = express();
     app.use(morgan(logFormat));
@@ -190,6 +230,8 @@ const restServer = (collection) => {
         getRelatedItems(collection, req, res);
     });
 
+    checkDataServer();
+    populateTestData(collection);
     app.listen(port, () => {
         log.info("Server listening at " + server);
     });
