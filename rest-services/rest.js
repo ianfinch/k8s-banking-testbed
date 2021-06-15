@@ -80,13 +80,13 @@ const dbQuery = (query) => {
     if (query) {
         return {
             status: 200,
-            data: db.data(query).map(removeInternalFields)
+            data: db.data(query).map(x => x)
         };
     }
 
     return {
         status: 200,
-        data: db.data().map(removeInternalFields)
+        data: db.data()
     };
 };
 
@@ -103,7 +103,7 @@ const timeoutPromise = (millis) => {
  * Poll the test data service until we get some data
  */
 const populateTestData = (collection, depth = 1) => {
-    const maxTries = 5;
+    const maxTries = 12;
 
     // Circuitbreaker
     if (depth > maxTries) {
@@ -128,7 +128,7 @@ const populateTestData = (collection, depth = 1) => {
  */
 const getAllItems = (collection, req, res) => {
     const queryResult = dbQuery();
-    res.status(queryResult.status).send(queryResult.data);
+    res.status(queryResult.status).send(queryResult.data.map(removeInternalFields));
 };
 
 /**
@@ -152,9 +152,9 @@ const getSpecifiedItems = (collection, req, res) => {
         res.sendStatus(404);
     } else {
         if (req.params.id.includes(",")) {
-            res.status(queryResult.status).send(queryResult.data);
+            res.status(queryResult.status).send(queryResult.data.map(removeInternalFields));
         } else {
-            res.status(queryResult.status).send(queryResult.data[0]);
+            res.status(queryResult.status).send(removeInternalFields(queryResult.data[0]));
         }
     }
 };
@@ -170,7 +170,7 @@ const getSpecifiedItems = (collection, req, res) => {
  */
 const getRelatedItems = (collection, req, res) => {
     const pk = collection.replace(/s$/, "Id");
-    const queryResult = db.data({[pk]: req.params.id}).map(x => x);
+    const queryResult = dbQuery({[pk]: req.params.id.split(",")});
 
     if (queryResult.length === 0) {
         res.sendStatus(404);
@@ -178,13 +178,14 @@ const getRelatedItems = (collection, req, res) => {
     }
 
     const fk = "_" + req.params.related.replace(/s$/, "Ids");
-    const subQueryResult = queryResult[0][fk];
-    if (!subQueryResult) {
+    const subQueryResult = queryResult.data.map(x => x[fk]);
+    const flattenedResult = [].concat.apply([], subQueryResult);
+    if (flattenedResult.length === 0) {
         res.sendStatus(404);
         return;
     }
 
-    res.status(200).send(subQueryResult);
+    res.status(200).send(flattenedResult);
 };
 
 /**
@@ -195,7 +196,7 @@ const checkDataServer = () => {
         if (error) {
             const localServer = "localhost:8080";
             log.warn("Unable to resolve data server (" + dataServer + "): " + error.code);
-//            dataServer = localServer;
+            dataServer = localServer;
             log.warn("Switched to alternative data server: " + localServer);
         } else {
             log.info("Data server address resolved: " + dataServer + " = " + result);
