@@ -133,9 +133,12 @@ const initialiseTables = () => {
             div: "contact-table",
             url: null,
             columns: {
-	            "Title": "title",
-	            "First Name": "firstName",
-	            "Last Name": "lastName"
+	            "Street": "street",
+	            "City": "city",
+	            "County": "county",
+	            "Postcode": "postCode",
+	            "Phone": "phone",
+	            "Email": "email"
             },
 //        viewAction: viewCustomer
         })

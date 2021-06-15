@@ -1,2 +1,5 @@
 import { restServer } from "./rest.js";
-restServer("contacts");
+
+restServer("contacts", {
+    customers: "http://customer-service"
+});

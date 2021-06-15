@@ -4,18 +4,14 @@ import { taffy as TAFFY } from "taffydb";
 import axios from "axios";
 import dns from "dns";
 
-/**
- * Set up server
- */
 const port = 3000;
 const server = `http://localhost:${port}`;
-var dataServer = "testdata-service";
 const logFormat = ":date[iso] :status   [" + process.env["HOSTNAME"] + "] :method :url HTTP/:http-version :res[content-length]";
-
-/**
- * Placeholder for database
- */
 const db = { data: null, lastUpdated: null, errorMessage: null };
+
+const services = {
+    data: "http://testdata-service"
+};
 
 /**
  * Enrich log messages with timestamp and host
@@ -50,16 +46,16 @@ const removeInternalFields = obj => Object.keys(obj).reduce((result, field) => {
  */
 const initialiseData = (collection) => {
 
-    return axios.get("http://" + dataServer + "/testdata/" + collection)
+    return axios.get(services.data + "/testdata/" + collection)
         .then(response => {
             db.data = TAFFY(response.data);
             db.errorMessage = null;
             db.lastUpdated = Date.now();
-            log.info("TESTDATA LOAD (" + JSON.stringify(dataServer) + "): Successfully loaded");
+            log.info("TESTDATA LOAD (" + JSON.stringify(services.data) + "): Successfully loaded");
             return true;
         })
         .catch(error => {
-            log.warn("TESTDATA LOAD (" + JSON.stringify(dataServer) + "): " + error.toString());
+            log.warn("TESTDATA LOAD (" + JSON.stringify(services.data) + "): " + error.toString());
             db.errorMessage = collection + " service not available";
             return false;
         });
@@ -169,41 +165,85 @@ const getSpecifiedItems = (collection, req, res) => {
  * returned.
  */
 const getRelatedItems = (collection, req, res) => {
+
+    // Get the items from the collection
     const pk = collection.replace(/s$/, "Id");
     const queryResult = dbQuery({[pk]: req.params.id.split(",")});
-
     if (queryResult.length === 0) {
         res.sendStatus(404);
         return;
     }
 
-    const fk = "_" + req.params.related.replace(/s$/, "Ids");
-    const subQueryResult = queryResult.data.map(x => x[fk]);
+    // Grab the id of the related items from the collection
+    const relatedCollection = req.params.related;
+    const fk = "_" + relatedCollection.replace(/s$/, "Ids");
+    const subQueryResult = queryResult.data.map(x => x[fk]).filter(x => x);
     const flattenedResult = [].concat.apply([], subQueryResult);
     if (flattenedResult.length === 0) {
         res.sendStatus(404);
         return;
     }
 
-    res.status(200).send(flattenedResult);
+    // Look up the server to get the related resource
+    const relatedServer = services[relatedCollection];
+    if (!relatedServer) {
+        res.sendStatus(500);
+        return;
+    }
+
+    // Make the API call to get the related resource
+    // Use a comma to force the result to be an array, even if it's only for
+    // one element
+    const relatedUrl = relatedServer + "/" + relatedCollection + "/," + flattenedResult.join(",");
+    axios.get(relatedUrl)
+        .then(result => {
+            res.status(200).send(result.data);
+        })
+        .catch(error => {
+            res.sendStatus(500);
+        });
+
+};
+
+/**
+ * Create a promise for a DNS lookup
+ */
+const dnsPromise = (server) => {
+    return new Promise(resolve => {
+        dns.lookup(server, (error, result) => {
+            if (error) {
+                resolve({
+                    address: null,
+                    error: error.code
+                });
+            } else {
+                resolve({
+                    address: result
+                });
+            }
+        });
+    });
 };
 
 /**
  * Check test data server exists (and fall back to localhost if not)
  */
-const checkDataServer = () => {
-    dns.lookup(dataServer, (error, result) => {
-        if (error) {
-            const localServer = "localhost:8080";
-            log.warn("Unable to resolve data server (" + dataServer + "): " + error.code);
-            dataServer = localServer;
-            log.warn("Switched to alternative data server: " + localServer);
-        } else {
-            log.info("Data server address resolved: " + dataServer + " = " + result);
-        }
+const checkDataServices = () => {
+    const localServer = "http://localhost:8080";
+
+    Object.keys(services).map(service => {
+        const server = (new URL(services[service])).host;
+        dnsPromise(server).then(result => {
+            if (result.address) {
+                log.info("Data server address resolved: " + server + " = " + result.address);
+            } else {
+                log.warn("Unable to resolve data server (" + server + "): " + result.error);
+                services[service] = localServer;
+                log.warn("Switched to alternative data server: " + localServer);
+            }
+        });
     });
 };
-
 
 /**
  * Create and start our server
@@ -214,7 +254,7 @@ const checkDataServer = () => {
  * 4) Start server
  *
  */
-const restServer = (collection) => {
+const restServer = (collection, relatedServers) => {
 
     const app = express();
     app.use(morgan(logFormat));
@@ -231,7 +271,8 @@ const restServer = (collection) => {
         getRelatedItems(collection, req, res);
     });
 
-    checkDataServer();
+    Object.keys(relatedServers).map(k => { services[k] = relatedServers[k]; });
+    checkDataServices();
     populateTestData(collection);
     app.listen(port, () => {
         log.info("Server listening at " + server);
