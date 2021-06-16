@@ -4,11 +4,17 @@ import { taffy as TAFFY } from "taffydb";
 import axios from "axios";
 import dns from "dns";
 
+// Details of this server
 const port = 3000;
 const server = `http://localhost:${port}`;
+
+// Structure of a log message
 const logFormat = ":date[iso] :status   [" + process.env["HOSTNAME"] + "] :method :url HTTP/:http-version :res[content-length]";
+
+// Initialise a structure for our database
 const db = { data: null, lastUpdated: null, errorMessage: null };
 
+// Which services do we need to connect to (name and URL)
 const services = {
     data: "http://testdata-service"
 };
@@ -124,7 +130,11 @@ const populateTestData = (collection, depth = 1) => {
  */
 const getAllItems = (collection, req, res) => {
     const queryResult = dbQuery();
-    res.status(queryResult.status).send(queryResult.data.map(removeInternalFields));
+    if (queryResult.status === 200) {
+        res.status(queryResult.status).send(queryResult.data.map(removeInternalFields));
+    } else {
+        res.status(queryResult.status).send(queryResult.data);
+    }
 };
 
 /**
@@ -246,6 +256,24 @@ const checkDataServices = () => {
 };
 
 /**
+ * Health check - we're healthy if we have some data, we know when we got that
+ * data, and we have no db errors
+ */
+const healthz = (req, res) => {
+    if (db.data && db.lastUpdated && !db.errorMessage) {
+        res.set("content-type", "text/plain")
+        res.status(200)
+           .send("Service healthy\n" +
+                 "Last updated: " + db.lastUpdated);
+    } else {
+        res.set("content-type", "text/plain")
+        res.status(500)
+           .send("Service unhealthy\n" +
+                 "Error: " + db.errorMessage);
+    }
+};
+
+/**
  * Create and start our server
  *
  * 1) Make API call to testdata service to populate the data
@@ -271,9 +299,20 @@ const restServer = (collection, relatedServers) => {
         getRelatedItems(collection, req, res);
     });
 
+    app.get("/healthz", (req, res) => {
+        healthz(req, res);
+    });
+
+    // Add the servers for related collections to our list of services
     Object.keys(relatedServers).map(k => { services[k] = relatedServers[k]; });
+
+    // Check that all our data services exist
     checkDataServices();
+
+    // Grab the data from our test data service
     populateTestData(collection);
+
+    // Start the server
     app.listen(port, () => {
         log.info("Server listening at " + server);
     });
