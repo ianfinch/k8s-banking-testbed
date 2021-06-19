@@ -20,3 +20,9 @@ spec:
           image: k3d-banking-registry:5000/banking-customer:local
           ports:
           - containerPort: 3000
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            failureThreshold: 9
+            periodSeconds: 20

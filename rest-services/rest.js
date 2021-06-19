@@ -75,7 +75,9 @@ const dbQuery = (query) => {
     if (db.errorMessage) {
         return {
             status: 500,
-            data: db.errorMessage
+            data: {
+                error: db.errorMessage
+            }
         };
     };
 
@@ -261,15 +263,15 @@ const checkDataServices = () => {
  */
 const healthz = (req, res) => {
     if (db.data && db.lastUpdated && !db.errorMessage) {
-        res.set("content-type", "text/plain")
-        res.status(200)
-           .send("Service healthy\n" +
-                 "Last updated: " + db.lastUpdated);
+        res.status(200).send({
+            status: "healthy",
+            "last-updated": db.lastUpdated
+        });
     } else {
-        res.set("content-type", "text/plain")
-        res.status(500)
-           .send("Service unhealthy\n" +
-                 "Error: " + db.errorMessage);
+        res.status(500).send({
+            status: "unhealthy",
+            error: db.errorMessage.error
+        });
     }
 };
 
