@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: monitoring
+  name: monitoring-service
+spec:
+  ports:
+  - port: 80
+    targetPort: 3000
+    appProtocol: http
+  selector:
+    app: monitoring-pod
+  type: ClusterIP

@@ -113,6 +113,10 @@ const getPods = () => {
         .then(data => {
             return arrayToObject(data.body.items.map(analysePod), "app");
         })
+        .catch(err => {
+            log.error("Error getting pods: " + err.response.body.code + " " + err.response.body.message);
+            return {};
+        });
 };
 
 /**
@@ -139,6 +143,10 @@ const getServices = () => {
                     return result;
                 }, {});
         })
+        .catch(err => {
+            log.error("Error getting services: " + err.response.body.code + " " + err.response.body.message);
+            return {};
+        });
 };
 
 /**

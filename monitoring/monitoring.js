@@ -6,21 +6,25 @@ const addService = (srv, pods, parent) => {
                          .appendChild(document.createElement("div"));
     elem.setAttribute("id", pods);
     elem.appendChild(document.createElement("div")).innerText = srv;
+    return elem;
 };
 
 /**
  * Add a group of pods (a deployment) into the display
  */
-const addPods = (pods, parent) => {
-    pods.forEach(pod => addPod(pod, parent));
+const addPods = (pods, parent, rootElem) => {
+    pods.forEach(pod => addPod(pod, parent, rootElem));
 };
 
 /**
  * Add a pod into a group of pods
  */
-const addPod = (pod, parent) => {
-    const elem = document.getElementById(parent)
-                         .appendChild(document.createElement("div"));
+const addPod = (pod, parent, rootElem) => {
+    let parentElem = document.getElementById(parent);
+    if (!parentElem) {
+        parentElem = addService("no service", parent, rootElem);
+    }
+    const elem = parentElem.appendChild(document.createElement("div"));
     elem.classList.add("pod", "status-" + pod.ready.status);
     elem.appendChild(document.createElement("div")).innerText = pod.name;
 
@@ -84,12 +88,12 @@ const renderMonitoring = (data) => {
         return;
     };
 
-    Object.keys(data.services).forEach(service => {
+    Object.keys(data.services).sort().forEach(service => {
         addService(service, data.services[service], "monitoring");
     });
 
     Object.keys(data.pods).forEach(pod => {
-        addPods(data.pods[pod], pod);
+        addPods(data.pods[pod], pod, "monitoring");
     });
 };
 

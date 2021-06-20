@@ -41,6 +41,14 @@ spec:
           number: 80
   - match:
     - uri:
+        prefix: /monitoring
+    route:
+    - destination:
+        host: monitoring-service
+        port:
+          number: 80
+  - match:
+    - uri:
         prefix: /tests
     route:
     - destination:
