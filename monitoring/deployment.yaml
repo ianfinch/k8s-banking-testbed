@@ -15,6 +15,7 @@ spec:
           app: monitoring-pod
           project: banking
       spec:
+        serviceAccountName: monitoring
         containers:
         - name: monitoring
           image: k3d-banking-registry:5000/banking-monitoring:local

@@ -38,7 +38,7 @@ const addPod = (pod, parent, rootElem) => {
  */
 const showLog = (event) => {
     const pod = event.target.parentNode.firstChild.innerText;
-    const container = event.target.innerText;
+    const container = event.target.innerText.replace(/\^.*/, "");
     fetch(window.location.origin + "/monitoring/logs/" + pod + "/" + container)
         .then(response => response.json())
         .then(logs => {

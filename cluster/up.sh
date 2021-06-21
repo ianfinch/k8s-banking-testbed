@@ -18,6 +18,11 @@ kubectl apply -f cluster/ingress.yaml
 ./cluster/build-containers.sh
 ./cluster/populate-registry.sh
 
+kubectl apply -f monitoring/account.yaml
+kubectl create rolebinding monitoring-view --clusterrole=view --serviceaccount=default:monitoring --namespace=default
+kubectl apply -f monitoring/service.yaml
+kubectl apply -f monitoring/deployment.yaml
+
 kubectl apply -f frontend/service.yaml
 kubectl apply -f frontend/deployment.yaml
 

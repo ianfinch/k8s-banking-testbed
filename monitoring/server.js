@@ -18,6 +18,7 @@ const port = 3000;
 const server = `http://localhost:${port}`;
 const logFormat = ":date[iso] :status   [" + process.env["HOSTNAME"] + "] :method :url HTTP/:http-version :res[content-length]";
 const app = express();
+app.enable("strict routing");
 app.use(morgan(logFormat));
 
 // Our k8s API
@@ -177,6 +178,10 @@ const getLogs = (pod, container) => {
 };
 
 app.get("/monitoring", (req, res) => {
+    res.redirect("/monitoring/");
+});
+
+app.get("/monitoring/", (req, res) => {
     res.sendFile(process.env["PWD"] + "/monitoring.html");
 });
 
