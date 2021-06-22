@@ -1,5 +1,6 @@
 import express from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
+import fs from "fs";
 
 const log = {
     format: (level, msg) => (new Date().toISOString()) + " " + level + " [" + process.env["HOSTNAME"] + "] " + msg,
@@ -16,11 +17,49 @@ const port = 3000;
 const apiPort = 8080;
 const server = `http://localhost:${port}`;
 const app = express();
+var template = null;
 
 // Serve static files from the "public" folder
 app.use(express.static("public"));
 
-// Change the port to the API port
+// Load in the template, if it's not already loaded
+const getTemplate = () => {
+
+    if (!template) {
+        template = fs.readFileSync("public/template.html", "utf8");
+    }
+
+    return template;
+};
+
+// Fill in a template from a component file
+const fillTemplate = (template, valueFile) => {
+
+    const values = fs.readFileSync(valueFile, "utf8");
+    const fields = template.match(/{{.*?}}/g);
+
+    fields.forEach(field => {
+        const tag = field.replace(/^{{ */, "").replace(/ *}}/, "");
+        const regex = new RegExp("<" + tag + ">\(.*\)</" + tag + ">", "s");
+        const value = regex.exec(values);
+
+        if (value === null) {
+            template = template.replace(field, "");
+        } else {
+            template = template.replace(field, value[1]);
+        }
+    });
+
+    return template;
+};
+
+// Build up the home page from our template
+app.get("/", (req, res) => {
+    res.send(fillTemplate(getTemplate(), "components/index.html"));
+});
+
+// If we are using a proxy, need to change reqests from our port to the
+// cluster's API port
 const proxyRouter = (req) => {
     return "http://" + req.headers.host.replace(":" + port, ":" + apiPort);
 };

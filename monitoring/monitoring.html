@@ -1,112 +1,21 @@
 <!doctype html>
 <html class="no-js" lang="">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-
-    <link href="layout.css" rel="stylesheet">
-    <title>Bank of Kubernetes</title>
-    <style>
-
-#monitoring {
-    font-family: monospace;
-    font-size: 0.8rem;
-}
-
-#monitoring div {
-    padding: 4px;
-}
-
-#monitoring > div {
-    background: white;
-    margin-bottom: 8px;
-}
-
-#monitoring > div > div:first-child {
-    font-weight: bold;
-    padding-top: 0;
-}
-
-#monitoring > div > div > div:first-child {
-    padding-top: 0;
-    padding-left: 0;
-}
-
-#logs {
-    background: white;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    white-space: pre-wrap;
-}
-
-.pod {
-    display: inline-block;
-    background: steelblue;
-    color: white;
-    margin-right: 8px;
-    border: 1px solid white;
-}
-
-.container {
-    display: inline-block;
-    background: steelblue;
-    color: white;
-    margin-right: 8px;
-    border: 1px solid white;
-    cursor: pointer;
-}
-
-.pod.status-ready {
-    background: mediumseagreen;
-}
-
-.container.status-ready {
-    background: green;
-}
-
-.pod.status-pending {
-    background: darkorange;
-}
-
-.container.status-pending {
-    background: goldenrod;
-}
-
-.status-broken {
-    background: red;
-}
-
-.status-unknown {
-    background: darkgrey;
-}
-
-    </style>
-  </head>
-  <body>
-    <div class="admin">
-
-      <header>
-        <h1>Bank of Kubernetes</h1>
-      </header>
-
-      <div class="nav">
-        <ul>
-          <li><a href="/#customers">Customers</a></li>
-          <li><a href="/#accounts">Accounts</a></li>
-          <li><a href="/monitoring">Monitoring</a></li>
-          <li><a href="/tests">View Tests</a></li>
-        </ul>
-      </div>
-
-      <div class="content">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Bank of Kubernetes Monitoring</title>
+        <!-- header assets -->
+        <link rel="stylesheet" href="monitoring.css" type="text/css" media="screen" />
+        <!-- /header assets -->
+    </head>
+    <body>
+        <h1>Bank of Kubernetes Monitoring</h1>
+        <!-- content -->
         <div id="monitoring"></div>
         <pre id="logs"></pre>
-      </div>
-
-      <footer>
-      </footer>
-    </div>
-    <script type="text/javascript" src="monitoring.js"></script>
-  </body>
+        <!-- /content -->
+        <!-- post-load scripts -->
+        <script type="text/javascript" src="monitoring.js"></script>
+        <!-- /post-load scripts -->
+    </body>
 </html>

@@ -14,6 +14,7 @@
     "morgan": "^1.10.0"
   },
   "devDependencies": {
+    "axios": "^0.21.1",
     "jest": "^27.0.4",
     "jest-html-reporter": "^3.4.1",
     "supertest": "^6.1.3"

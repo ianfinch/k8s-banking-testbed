@@ -1,33 +1,25 @@
 import express from "express";
 import morgan from "morgan";
 import jest from "jest";
-
-const log = {
-    format: (level, msg) => (new Date().toISOString()) + " " + level + " [" + process.env["HOSTNAME"] + "] " + msg,
-    info: (msg) => console.log(log.format("INFO ", msg)),
-    error: (msg) => console.error(log.format("ERROR", msg))
-};
+import utils from "./utils.js";
 
 process.on("SIGINT", () => {
-    log.info("Server received interrupt signal");
+    utils.log.info("Server received interrupt signal");
     process.exit();
 });
 
 const port = 3000;
 const server = `http://localhost:${port}`;
+const template = utils.template();
 const logFormat = ":date[iso] :status   [" + process.env["HOSTNAME"] + "] :method :url HTTP/:http-version :res[content-length]";
 const app = express();
 app.use(morgan(logFormat));
 
 app.get("/tests", (req, res) => {
     jest.run([]).then(() => {
-        res.sendFile(process.env["PWD"] + "/test-report.html");
+    res.set("content-type", "text/html");
+        res.send(template("test-report.html"));
     });
-});
-
-app.get("/tests/layout.css", (req, res) => {
-    res.set("content-type", "text/css");
-    res.sendFile(process.env["PWD"] + "/layout.css");
 });
 
 app.get("/tests/test-report.css", (req, res) => {
@@ -36,5 +28,5 @@ app.get("/tests/test-report.css", (req, res) => {
 });
 
 app.listen(port, () => {
-    log.info("Server listening at " + server);
+    utils.log.info("Server listening at " + server);
 });

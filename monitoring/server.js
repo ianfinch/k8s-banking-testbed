@@ -1,24 +1,20 @@
 import express from "express";
 import morgan from "morgan";
 import k8s from "@kubernetes/client-node";
-
-const log = {
-    format: (level, msg) => (new Date().toISOString()) + " " + level + " [" + process.env["HOSTNAME"] + "] " + msg,
-    info: (msg) => console.log(log.format("INFO ", msg)),
-    warn: (msg) => console.warn(log.format("WARN ", msg)),
-    error: (msg) => console.error(log.format("ERROR", msg))
-};
+import utils from "./utils.js";
 
 process.on("SIGINT", () => {
-    log.info("Server received interrupt signal");
+    utils.log.info("Server received interrupt signal");
     process.exit();
 });
 
 const port = 3000;
 const server = `http://localhost:${port}`;
+const template = utils.template();
 const logFormat = ":date[iso] :status   [" + process.env["HOSTNAME"] + "] :method :url HTTP/:http-version :res[content-length]";
 const app = express();
 app.enable("strict routing");
+app.use(express.static("public"));
 app.use(morgan(logFormat));
 
 // Our k8s API
@@ -41,7 +37,7 @@ const k8sInitialisationLoop = () => {
     try {
         initialiseK8s();
     } catch (err) {
-        log.warn("Unable to connect to k8s API: " + err.message + " (retrying)");
+        utils.log.warn("Unable to connect to k8s API: " + err.message + " (retrying)");
         setTimeout(() => {
             k8sInitialisationLoop();
         }, 10000);
@@ -115,7 +111,7 @@ const getPods = () => {
             return arrayToObject(data.body.items.map(analysePod), "app");
         })
         .catch(err => {
-            log.error("Error getting pods: " + err.response.body.code + " " + err.response.body.message);
+            utils.log.error("Error getting pods: " + err.response.body.code + " " + err.response.body.message);
             return {};
         });
 };
@@ -145,7 +141,7 @@ const getServices = () => {
                 }, {});
         })
         .catch(err => {
-            log.error("Error getting services: " + err.response.body.code + " " + err.response.body.message);
+            utils.log.error("Error getting services: " + err.response.body.code + " " + err.response.body.message);
             return {};
         });
 };
@@ -164,7 +160,7 @@ const getMonitoringData = () => {
             pods
         };
     }).catch(err => {
-        log.error("Request failed: " + err.code);
+        utils.log.error("Request failed: " + err.code);
     });
 };
 
@@ -182,7 +178,8 @@ app.get("/monitoring", (req, res) => {
 });
 
 app.get("/monitoring/", (req, res) => {
-    res.sendFile(process.env["PWD"] + "/monitoring.html");
+    res.set("content-type", "text/html");
+    res.send(template("monitoring.html"));
 });
 
 app.get("/monitoring/data", (req, res) => {
@@ -201,16 +198,6 @@ app.get("/monitoring/logs/:pod/:container", (req, res) => {
     getLogs(req.params.pod, req.params.container).then(x => { res.send(x); });
 });
 
-app.get("/monitoring/layout.css", (req, res) => {
-    res.set("content-type", "text/css");
-    res.sendFile(process.env["PWD"] + "/layout.css");
-});
-
-app.get("/monitoring/monitoring.js", (req, res) => {
-    res.set("content-type", "application/javascript");
-    res.sendFile(process.env["PWD"] + "/monitoring.js");
-});
-
 app.listen(port, () => {
-    log.info("Server listening at " + server);
+    utils.log.info("Server listening at " + server);
 });

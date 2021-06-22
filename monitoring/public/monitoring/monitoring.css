@@ -1,0 +1,72 @@
+#monitoring {
+    font-family: monospace;
+    font-size: 0.8rem;
+}
+
+#monitoring div {
+    padding: 4px;
+}
+
+#monitoring > div {
+    background: white;
+    margin-bottom: 8px;
+}
+
+#monitoring > div > div:first-child {
+    font-weight: bold;
+    padding-top: 0;
+}
+
+#monitoring > div > div > div:first-child {
+    padding-top: 0;
+    padding-left: 0;
+}
+
+#logs {
+    background: white;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    white-space: pre-wrap;
+}
+
+.pod {
+    display: inline-block;
+    background: steelblue;
+    color: white;
+    margin-right: 8px;
+    border: 1px solid white;
+}
+
+.container {
+    display: inline-block;
+    background: steelblue;
+    color: white;
+    margin-right: 8px;
+    border: 1px solid white;
+    cursor: pointer;
+}
+
+.pod.status-ready {
+    background: mediumseagreen;
+}
+
+.container.status-ready {
+    background: green;
+}
+
+.pod.status-pending {
+    background: darkorange;
+}
+
+.container.status-pending {
+    background: goldenrod;
+}
+
+.status-broken {
+    background: red;
+}
+
+.status-unknown {
+    background: darkgrey;
+}
