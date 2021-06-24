@@ -114,6 +114,22 @@ const linkCollections = (primary, pk, secondary, fk) => {
 };
 
 /**
+ * Go through the list of contacts and update the email address to match the
+ * linked customer
+ */
+const updateEmailAddresses = () => {
+    db.contacts().join(db.customers, function (l, r) {
+        return (l._customerIds[0] === r.customerId);
+    })
+    .select("contactId", "email", "firstName", "lastName")
+    .forEach(([contactId, email, firstName, lastName], n) => {
+        email = (firstName + "." + lastName + email.replace(/.*@/, "@")).toLowerCase();
+        db.contacts({contactId}).update({email});
+    });
+};
+
+
+/**
  * Create the collections in the database
  */
 const db = {
@@ -123,6 +139,7 @@ const db = {
     transactions: TAFFY(uuidList("transactionId", 3000).map(uuidObject => createRecord(transaction, uuidObject)))
 };
 linkCollections(db.customers, "customerId", db.contacts, "contactId");
+updateEmailAddresses();
 
 /**
  * Handle the top-level request to our server, which just returns a list of the available collections
@@ -130,7 +147,7 @@ linkCollections(db.customers, "customerId", db.contacts, "contactId");
 app.get("/testdata", (req, res) => {
     res.send({
         collections: Object.keys(db),
-        _links: Object.keys(db).map(x => `${server}/${x}`)
+        _links: Object.keys(db).map(x => server + "/" + x)
     });
 });
 
