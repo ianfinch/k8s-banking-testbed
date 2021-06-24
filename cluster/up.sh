@@ -38,6 +38,10 @@ kubectl apply -f rest-services/instances/contacts-deployment.yaml
 kubectl apply -f tests/service.yaml
 kubectl apply -f tests/deployment.yaml
 
+kubectl apply -f istio/prometheus.yaml
+kubectl apply -f istio/grafana.yaml
+kubectl apply -f istio/kiali.yaml
+
 echo -n "Waiting for ingress to be created: "
 ingressPod=""
 while [[ "$ingressPod" == "" ]] ; do
