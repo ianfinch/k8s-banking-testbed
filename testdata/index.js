@@ -140,6 +140,7 @@ const db = {
 };
 linkCollections(db.customers, "customerId", db.contacts, "contactId");
 updateEmailAddresses();
+linkCollections(db.customers, "customerId", db.accounts, "accountId");
 
 /**
  * Handle the top-level request to our server, which just returns a list of the available collections

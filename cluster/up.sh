@@ -23,17 +23,20 @@ kubectl create rolebinding monitoring-view --clusterrole=view --serviceaccount=d
 kubectl apply -f monitoring/service.yaml
 kubectl apply -f monitoring/deployment.yaml
 
-kubectl apply -f frontend/service.yaml
-kubectl apply -f frontend/deployment.yaml
-
 kubectl apply -f testdata/service.yaml
 kubectl apply -f testdata/deployment.yaml
+
+kubectl apply -f frontend/service.yaml
+kubectl apply -f frontend/deployment.yaml
 
 kubectl apply -f rest-services/instances/customer-service.yaml
 kubectl apply -f rest-services/instances/customer-deployment.yaml
 
 kubectl apply -f rest-services/instances/contacts-service.yaml
 kubectl apply -f rest-services/instances/contacts-deployment.yaml
+
+kubectl apply -f rest-services/instances/accounts-service.yaml
+kubectl apply -f rest-services/instances/accounts-deployment.yaml
 
 kubectl apply -f tests/service.yaml
 kubectl apply -f tests/deployment.yaml

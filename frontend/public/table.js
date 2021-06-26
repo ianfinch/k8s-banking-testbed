@@ -41,6 +41,7 @@ const viewCustomer = (e, cell) => {
     displayElement("customer-details");
     displayElement("close-customer-details");
     tables.contacts.setData("/customers/" + data.customerId + "/contacts");
+    tables.accounts.setData("/customers/" + data.customerId + "/accounts");
 };
 
 /**
@@ -122,9 +123,10 @@ const initialiseTables = () => {
             div: "accounts-table",
             url: null,
             columns: {
-	            "Title": "title",
-	            "First Name": "firstName",
-	            "Last Name": "lastName"
+                "Branch": "branch",
+                "Sort Code": "sortCode",
+                "Account Number": "accountNumber",
+                "Balance": "balance"
             },
 //        viewAction: viewCustomer
         }),

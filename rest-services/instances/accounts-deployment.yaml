@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: accounts
+  labels:
+    app: accounts
+spec:
+    replicas: 3
+    selector:
+      matchLabels:
+        app: accounts-pod
+    template:
+      metadata:
+        labels:
+          app: accounts-pod
+          project: banking
+      spec:
+        containers:
+        - name: accounts
+          image: k3d-banking-registry:5000/banking-accounts:local
+          ports:
+          - containerPort: 3000
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            failureThreshold: 9
+            periodSeconds: 20

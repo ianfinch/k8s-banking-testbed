@@ -57,7 +57,11 @@ const showLog = (event) => {
 const addContainer = (container, parent) => {
     const elem = parent.appendChild(document.createElement("div"));
     elem.classList.add("container", "status-" + container.status);
-    elem.innerText = container.name + "^".repeat(container.restarts);
+    if (container.restarts) {
+        elem.innerText = container.name + "^" + container.restarts;
+    } else {
+        elem.innerText = container.name;
+    }
     elem.addEventListener("click", showLog);
 };
 
@@ -97,8 +101,8 @@ const renderMonitoring = (data) => {
     });
 };
 
-// An upper limit for trying to fetch data, if the backend becomes unavailable
-var retriesLeft = 10;
+// A count of our retries
+var retries = 0;
 
 /**
  * Get a new set of monitoring stats
@@ -108,12 +112,9 @@ const refreshMonitoring = () => {
         .then(response => response.json())
         .then(renderMonitoring)
         .catch(error => {
-            renderMonitoring({ error: "Backend monitoring service has stopped responding (" +
-                                      (retriesLeft === 0
-                                        ? "no longer refreshing"
-                                        : retriesLeft + " attempt" + (retriesLeft === 1 ? "" : "s") + " left") + 
-                                      ")" });
-            retriesLeft--;
+            renderMonitoring({ error: "Backend monitoring service has stopped responding (retry " +
+                                      retries + ")" });
+            retries++;
         });
 };
 
@@ -121,15 +122,11 @@ const refreshMonitoring = () => {
  * A loop to continually refresh the monitoring data
  */
 const refreshLoop = () => {
-    refreshMonitoring();
 
-    if (retriesLeft) {
-        setTimeout(() => {
-            refreshLoop();
-        }, 5000);
-    } else {
-        renderMonitoring({ error: "Backend monitoring service has stopped responding" });
-    }
+    refreshMonitoring();
+    setTimeout(() => {
+        refreshLoop();
+    }, 5000);
 };
 
 refreshLoop();
