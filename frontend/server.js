@@ -71,6 +71,8 @@ const proxyRouter = (req) => {
 // redeploy on every change)
 if (process.argv.includes("WITH_BACKEND_PROXY")) {
     log.info("Backend proxy enabled");
+    app.use("/accounts", createProxyMiddleware({ router: proxyRouter }));
+    app.use("/contacts", createProxyMiddleware({ router: proxyRouter }));
     app.use("/customers", createProxyMiddleware({ router: proxyRouter }));
 }
 

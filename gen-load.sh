@@ -61,7 +61,6 @@ customerJourney() {
 }
 
 contactsJourney() {
-
     for i in {1..1000} ; do
 
         rand=$( echo "120 * $RANDOM / $maxrand + 1" | bc )
@@ -77,8 +76,36 @@ contactsJourney() {
     done
 }
 
+accountsJourney() {
+    for i in {1..1000} ; do
+
+        rand=$( echo "150 * $RANDOM / $maxrand + 1" | bc )
+
+        id=$( curl --silent ${server}/accounts | jq -r .[].accountId | tail -${rand} | head -1 )
+        ticker
+
+        curl --silent ${server}/accounts/${id} > /dev/null
+        ticker
+
+        curl --silent ${server}/accounts/${id}/customers > /dev/null
+        ticker
+
+        curl --silent ${server}/accounts/${id}/transactions > /dev/null
+        ticker
+    done
+}
+
+tests() {
+    for i in {1..1000} ; do
+        curl --silent ${server}/tests > /dev/null
+        ticker
+    done
+}
+
 frontend &
 customerJourney &
 contactsJourney &
+accountsJourney &
+tests &
 wait
 echo

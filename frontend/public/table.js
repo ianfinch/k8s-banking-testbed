@@ -1,4 +1,42 @@
 /**
+ * Cache data, so as not to make too many API calls
+ */
+const cacheData = {};
+
+/**
+ * Easy way to store stuff in the cache
+ */
+const writeToCache = (table, id, data) => {
+
+    if (!cacheData[table]) {
+        cacheData[table] = {};
+    }
+
+    cacheData[table][id] = data;
+};
+
+/**
+ * Easy way to get stuff back from the cache
+ *
+ * If we don't have the data cached, then we need to go and get it from the API
+ * (and then cache the result)
+ */
+const readFromCache = (table, id) => {
+    let result = cacheData[table] && cacheData[table][id];
+
+    if (result) {
+        return result;
+    }
+
+    return fetch("/" + table + "/" + id)
+            .then(x => x.json())
+            .then(x => {
+                writeToCache(table, id, x);
+                return x;
+            });
+};
+
+/**
  * Set the text within the h2 heading
  */
 const setH2Text = (text) => {
@@ -32,22 +70,95 @@ const hideElement = (id) => {
 };
 
 /**
+ * Display a table
+ */
+const displayTable = (id) => {
+    displayElement(id + "-heading");
+    displayElement(id + "-table");
+};
+
+/**
+ * Hide a table
+ */
+const hideTable = (id) => {
+    hideElement(id + "-heading");
+    hideElement(id + "-table");
+};
+
+/**
  * Action to view a customer
  */
 const viewCustomer = (e, cell) => {
     const data = cell.getRow().getData();
+    writeToCache("customers", data.customerId, data);
+    location.hash = "#customers/" + data.customerId;
+};
+
+/**
+ * Display a customer's details
+ */
+const displayCustomer = async (id) => {
+    const data = await readFromCache("customers", id);
     setH2Text(["Customer:", data.title, data.firstName, data.lastName].join(" "));
-    hideElement("customer-table");
-    displayElement("customer-details");
-    displayElement("close-customer-details");
+    hideTable("customer");
+    hideTable("transactions");
+    displayTable("accounts");
+    displayTable("contact");
+    displayElement("close-details");
+    tables.contacts.clearData();
     tables.contacts.setData("/customers/" + data.customerId + "/contacts");
+    tables.accounts.clearData();
     tables.accounts.setData("/customers/" + data.customerId + "/accounts");
 };
 
 /**
- * Action to close the customer details
+ * Action to view an account
  */
-const closeCustomerDetails = () => {
+const viewAccount = (e, cell) => {
+    const data = cell.getRow().getData();
+    writeToCache("accounts", data.accountId, data);
+    location.hash = "#accounts/" + data.accountId;
+};
+
+/**
+ * Display an account's details
+ */
+const displayAccount = async (id) => {
+    const data = await readFromCache("accounts", id);
+    setH2Text(["Account:", data.accountNumber, "(" + data.sortCode + ")"].join(" "));
+    hideTable("accounts");
+    hideTable("contact");
+    displayElement("close-details");
+    displayTable("customer");
+    displayTable("transactions");
+    tables.customers.clearData();
+    tables.customers.setData("/accounts/" + data.accountId + "/customers");
+    tables.transactions.clearData();
+    tables.transactions.setData("/accounts/" + data.accountId + "/transactions");
+};
+
+/**
+ * Action to view contact details
+ */
+const viewContact = (e, cell) => {
+    const data = cell.getRow().getData();
+    writeToCache("contacts", data.contactId, data);
+    location.hash = "#contacts/" + data.contactId;
+};
+
+/**
+ * Display a contact's details
+ */
+const displayContact = async (id) => {
+    const data = await readFromCache("contacts", id);
+    setH2Text("Contact:" + data.email);
+    hideTable("accounts");
+    hideTable("contact");
+    hideTable("transactions");
+    displayElement("close-details");
+    displayTable("customer");
+    tables.customers.clearData();
+    tables.customers.setData("/contacts/" + data.contactId + "/customers");
 };
 
 /**
@@ -62,13 +173,15 @@ const createTableColumns = (definition) => {
         };
     });
 
-    result.push({
-        title: "Actions",
-        formatter: viewButton,
-        width: 120,
-        hozAlign: "center",
-        cellClick: definition.viewAction
-    });
+    if (definition.viewAction) {
+        result.push({
+            title: "Actions",
+            formatter: viewButton,
+            width: 120,
+            hozAlign: "center",
+            cellClick: definition.viewAction
+        });
+    }
 
     return result;
 };
@@ -110,7 +223,7 @@ const initialiseTables = () => {
     const tables = {
         customers: createTable({
             div: "customer-table",
-            url: "/customers",
+            url: null,
             columns: {
 	            "Title": "title",
 	            "First Name": "firstName",
@@ -128,7 +241,7 @@ const initialiseTables = () => {
                 "Account Number": "accountNumber",
                 "Balance": "balance"
             },
-//        viewAction: viewCustomer
+            viewAction: viewAccount
         }),
 
         contacts: createTable({
@@ -142,7 +255,16 @@ const initialiseTables = () => {
 	            "Phone": "phone",
 	            "Email": "email"
             },
-//        viewAction: viewCustomer
+            viewAction: viewContact
+        }),
+
+        transactions: createTable({
+            div: "transactions-table",
+            url: null,
+            columns: {
+	            "Date": "date",
+	            "Transaction": "description"
+            }
         })
     };
 
@@ -154,8 +276,13 @@ const initialiseTables = () => {
  */
 const initialiseButtons = () => {
 
-    document.getElementById("close-customer-details").addEventListener("click", () => {
-        displayCustomers();
+    document.getElementById("close-details").addEventListener("click", () => {
+        const heading = document.getElementById("sectionHeading").innerText.split(":")[0];
+        if (heading === "Account") {
+            location.hash = "#accounts";
+        } else {
+            location.hash = "#customers";
+        }
     });
 };
 
@@ -165,24 +292,33 @@ const initialiseButtons = () => {
 const tables = initialise();
 
 /**
- * Display the customers pane
+ * Display a list of customers
  */
 const displayCustomers = () => {
+    tables.customers.clearData();
+    tables.customers.setData("/customers");
     setH2Text("Customers");
+    hideElement("customer-heading");
     displayElement("customer-table");
-    hideElement("customer-details");
-    hideElement("close-customer-details");
-//    tables.customers.redraw(true);
+    hideTable("accounts");
+    hideTable("contact");
+    hideTable("transactions");
+    hideElement("close-details");
 };
 
 /**
- * Display the accounts pane
+ * Display a list of accounts
  */
 const displayAccounts = () => {
+    tables.accounts.clearData();
+    tables.accounts.setData("/accounts");
     setH2Text("Accounts");
-    hideElement("customer-table");
-    hideElement("customer-details");
-    hideElement("close-customer-details");
+    hideElement("accounts-heading");
+    displayElement("accounts-table");
+    hideTable("customer");
+    hideTable("contact");
+    hideTable("transactions");
+    hideElement("close-details");
 };
 
 /**
@@ -190,11 +326,23 @@ const displayAccounts = () => {
  */
 const analyseUrl = () => {
 
-    if (window.location.href.endsWith("#customers")) {
+    if (window.location.hash === "#customers") {
         displayCustomers();
 
-    } else if (window.location.href.endsWith("#accounts")) {
+    } else if (window.location.hash.match(/^#customers\/[-0-9a-f]*$/)) {
+        const id = window.location.hash.split("/")[1];
+        displayCustomer(id);
+
+    } else if (window.location.hash === "#accounts") {
         displayAccounts();
+
+    } else if (window.location.hash.match(/^#accounts\/[-0-9a-f]*$/)) {
+        const id = window.location.hash.split("/")[1];
+        displayAccount(id);
+
+    } else if (window.location.hash.match(/^#contacts\/[-0-9a-f]*$/)) {
+        const id = window.location.hash.split("/")[1];
+        displayContact(id);
 
     } else {
         displayCustomers();

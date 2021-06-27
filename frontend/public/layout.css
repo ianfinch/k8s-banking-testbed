@@ -88,7 +88,7 @@ footer {
     max-width: 800px;
 }
 
-.tabulator-cell > button, #close-customer-details {
+.tabulator-cell > button, #close-details {
     background: var(--colour-highlight);
     foreground: var(--colour-foreground);
     border: 1px solid var(--colour-foreground);
@@ -101,8 +101,4 @@ footer {
 
 .tabulator-cell > button:hover {
     background: var(--colour-highlight2);
-}
-
-#customer-table, #customer-details, #close-customer-details {
-    display: none;
 }

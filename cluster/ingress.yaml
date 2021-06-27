@@ -49,6 +49,14 @@ spec:
           number: 80
   - match:
     - uri:
+        prefix: /transactions
+    route:
+    - destination:
+        host: transactions-service
+        port:
+          number: 80
+  - match:
+    - uri:
         prefix: /monitoring
     route:
     - destination:

@@ -8,4 +8,5 @@ declare -a images=(
     "guzo/banking-monitoring"
     "guzo/banking-testdata"
     "guzo/banking-tests"
+    "guzo/banking-transactions"
 )

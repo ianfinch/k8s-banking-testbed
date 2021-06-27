@@ -38,6 +38,9 @@ kubectl apply -f rest-services/instances/contacts-deployment.yaml
 kubectl apply -f rest-services/instances/accounts-service.yaml
 kubectl apply -f rest-services/instances/accounts-deployment.yaml
 
+kubectl apply -f rest-services/instances/transactions-service.yaml
+kubectl apply -f rest-services/instances/transactions-deployment.yaml
+
 kubectl apply -f tests/service.yaml
 kubectl apply -f tests/deployment.yaml
 
