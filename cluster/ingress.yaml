@@ -60,7 +60,7 @@ spec:
         prefix: /monitoring
     route:
     - destination:
-        host: monitoring-service
+        host: monitoring-service.operations.svc.cluster.local
         port:
           number: 80
   - match:
@@ -68,7 +68,7 @@ spec:
         prefix: /tests
     route:
     - destination:
-        host: tests-service
+        host: tests-service.operations.svc.cluster.local
         port:
           number: 80
   - match:

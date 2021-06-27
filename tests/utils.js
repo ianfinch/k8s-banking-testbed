@@ -2,6 +2,8 @@ import dns from "dns";
 import axios from "axios";
 import fs from "fs";
 
+const templateServer = "frontend-service.default.svc.cluster.local";
+
 /**
  * Functions to control display of logging
  */
@@ -61,7 +63,6 @@ const initialiseTemplate = () => {
      * Load in the page template
      */
     const loadTemplate = () => {
-        const templateServer = "frontend-service";
     
         dns.lookup(templateServer, (error, result) => {
             if (error) {

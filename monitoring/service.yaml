@@ -1,9 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
+  name: monitoring-service
+  namespace: operations
   labels:
     app: monitoring
-  name: monitoring-service
 spec:
   ports:
   - port: 80

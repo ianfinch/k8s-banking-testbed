@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: monitoring
+  namespace: operations
   labels:
     app: monitoring
 spec:
@@ -15,7 +16,7 @@ spec:
           app: monitoring-pod
           project: banking
       spec:
-        serviceAccountName: monitoring
+        serviceAccountName: monitoring-account
         containers:
         - name: monitoring
           image: k3d-banking-registry:5000/banking-monitoring:local

@@ -17,7 +17,8 @@ app.use(morgan(logFormat));
 
 app.get("/tests", (req, res) => {
     jest.run([]).then(() => {
-    res.set("content-type", "text/html");
+        process.env["TEST_SUBNET"] = ".default.svc.cluster.local";
+        res.set("content-type", "text/html");
         res.send(template("test-report.html"));
     });
 });

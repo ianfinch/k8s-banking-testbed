@@ -12,14 +12,15 @@ startTime=$( date '+%s' )
 
 k3d cluster create --config ./cluster/config.yaml --k3s-server-arg "--no-deploy=traefik"
 istioctl install --set profile=default -y
-kubectl label namespace default istio-injection=enabled
 kubectl apply -f cluster/ingress.yaml
+kubectl apply -f cluster/namespaces.yaml
+kubectl label namespace default istio-injection=enabled
+kubectl label namespace operations istio-injection=enabled
 
 ./cluster/build-containers.sh
 ./cluster/populate-registry.sh
 
 kubectl apply -f monitoring/account.yaml
-kubectl create rolebinding monitoring-view --clusterrole=view --serviceaccount=default:monitoring --namespace=default
 kubectl apply -f monitoring/service.yaml
 kubectl apply -f monitoring/deployment.yaml
 

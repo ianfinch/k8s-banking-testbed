@@ -105,8 +105,8 @@ const analysePod = (pod) => {
 /**
  * Get a list of pods in our namespace
  */
-const getPods = () => {
-    return k8sApi.listNamespacedPod("default")
+const getPods = (ns) => {
+    return k8sApi.listNamespacedPod(ns)
         .then(data => {
             return arrayToObject(data.body.items.map(analysePod), "app");
         })
@@ -129,8 +129,8 @@ const analyseService = (srv) => {
 /**
  * Get a list of services in our namespace
  */
-const getServices = () => {
-    return k8sApi.listNamespacedService("default")
+const getServices = (ns) => {
+    return k8sApi.listNamespacedService(ns)
         .then(data => {
             return data.body.items
                 .map(analyseService)
@@ -149,11 +149,11 @@ const getServices = () => {
 /**
  * Get all the monitoring data and aggregate it
  */
-const getMonitoringData = () => {
+const getMonitoringData = (ns) => {
 
     return Promise.all([
-        getServices(),
-        getPods()
+        getServices(ns),
+        getPods(ns)
     ]).then(([services, pods]) => {
         return {
             services,
@@ -167,8 +167,8 @@ const getMonitoringData = () => {
 /**
  * Get the logs from a container
  */
-const getLogs = (pod, container) => {
-    return k8sApi.readNamespacedPodLog(pod, "default", container)
+const getLogs = (ns, pod, container) => {
+    return k8sApi.readNamespacedPodLog(pod, ns, container)
             .then(data => data.response.body.split("\n"))
             .catch(err => { return null; });
 };
@@ -187,7 +187,21 @@ app.get("/monitoring/data", (req, res) => {
         res.status(503).send({ error: "Waiting for kubernetes to become available" });
         return;
     }
-    getMonitoringData().then(x => { res.send(x); });
+    Promise.all([
+        getMonitoringData("default"),
+        getMonitoringData("operations")
+    ]).then(data => {
+        return data.reduce((result, obj) => {
+            Object.keys(obj).forEach(key => {
+                if (result[key]) {
+                    result[key] = Object.assign({}, result[key], obj[key]);
+                } else {
+                    result[key] = Object.assign({}, obj[key]);
+                }
+            });
+            return result;
+        }, {});
+    }).then(x => { res.send(x); });
 });
 
 app.get("/monitoring/logs/:pod/:container", (req, res) => {
@@ -195,7 +209,7 @@ app.get("/monitoring/logs/:pod/:container", (req, res) => {
         res.status(503).send({ error: "Waiting for kubernetes to become available" });
         return;
     }
-    getLogs(req.params.pod, req.params.container).then(x => { res.send(x); });
+    getLogs("default", req.params.pod, req.params.container).then(x => { res.send(x); });
 });
 
 app.listen(port, () => {

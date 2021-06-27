@@ -1,6 +1,7 @@
 const supertest = require("supertest");
-const request = supertest("http://" + ( process.env["CUSTOMER_SERVICE_SERVICE_HOST"] || "localhost" ) + ":" +
-                                      ( process.env["CUSTOMER_SERVICE_SERVICE_PORT"] || "8080" ));
+const request = supertest("http://" + ( process.env["TEST_SUBNET"]
+                                            ? "customer-service" + process.env["TEST_SUBNET"]
+                                            : "localhost:8080"));
 
 const customerFields = [
     "customerId",
