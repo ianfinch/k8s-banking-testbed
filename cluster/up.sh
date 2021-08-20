@@ -10,7 +10,7 @@ fi
 
 startTime=$( date '+%s' )
 
-k3d cluster create --config ./cluster/config.yaml --k3s-server-arg "--no-deploy=traefik"
+k3d cluster create --config ./cluster/config.yaml
 istioctl install --set profile=default -y
 kubectl apply -f cluster/ingress.yaml
 kubectl apply -f cluster/namespaces.yaml
