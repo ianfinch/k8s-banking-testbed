@@ -18,3 +18,12 @@ for image in "${images[@]}" ; do
     docker push ${newTag}
     docker rmi ${newTag}
 done
+
+. ./cluster/images-istio.sh
+
+for image in "${istioImages[@]}" ; do
+    newTag="${registryLabel}.localhost:${registryPort}/${image}"
+    docker tag ${image} ${newTag}
+    docker push ${newTag}
+    docker rmi ${newTag}
+done

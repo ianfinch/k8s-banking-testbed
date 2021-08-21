@@ -11,14 +11,14 @@ fi
 startTime=$( date '+%s' )
 
 k3d cluster create --config ./cluster/config.yaml
-istioctl install --set profile=default -y
+./cluster/build-containers.sh
+./cluster/populate-registry.sh
+
+istioctl install --set profile=default --set hub="k3d-banking-registry:5000/istio" -y
 kubectl apply -f cluster/ingress.yaml
 kubectl apply -f cluster/namespaces.yaml
 kubectl label namespace default istio-injection=enabled
 kubectl label namespace operations istio-injection=enabled
-
-./cluster/build-containers.sh
-./cluster/populate-registry.sh
 
 kubectl apply -f monitoring/account.yaml
 kubectl apply -f monitoring/service.yaml
