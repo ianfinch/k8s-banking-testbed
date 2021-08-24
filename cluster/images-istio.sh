@@ -18,10 +18,11 @@ declare -a istioLabels=(
 
 version=$( istioctl version 2> /dev/null )
 
-# Go through the list of images we want, pulling any we don't have and building
-# up a fully specified list
-for label in "${istioLabels[@]}" ; do
-    image="istio/${label}:${version}"
+# Function to check whether an image needs to be pulled, and add the image to
+# our list
+__check_image() {
+    image="$1"
+
     haveCopy=$( docker images -q -f reference="$image" )
 
     if [[ "$haveCopy" == "" ]] ; then
@@ -29,4 +30,15 @@ for label in "${istioLabels[@]}" ; do
     fi
 
     istioImages+=($image)
+}
+
+# Go through the list of images we want, pulling any we don't have and building
+# up a fully specified list
+for label in "${istioLabels[@]}" ; do
+    __check_image "istio/${label}:${version}"
+done
+
+# Add in any images needed for Istio-based applications
+for image in $( grep image: istio/*.yaml | cut -d'"' -f2 ) ; do
+    __check_image "$image"
 done

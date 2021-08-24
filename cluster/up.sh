@@ -157,6 +157,10 @@ kubectl apply -f cluster/ingress.yaml
 kubectl apply -f cluster/namespaces.yaml
 kubectl label namespace default istio-injection=enabled
 kubectl label namespace operations istio-injection=enabled
+
+cat istio/prometheus.yaml | sed -E 's/(image(_name)?: *"?)/\1k3d-banking-registry:5000\//' | kubectl apply -f -
+cat istio/grafana.yaml | sed -E 's/(image(_name)?: *"?)/\1k3d-banking-registry:5000\//' | kubectl apply -f -
+cat istio/kiali.yaml | sed -E 's/(image(_name)?: *"?)quay\.io/\1k3d-banking-registry:5000/' | kubectl apply -f -
 __step_success 2
 
 __start_step 3
@@ -184,10 +188,6 @@ kubectl apply -f rest-services/instances/transactions-deployment.yaml
 
 kubectl apply -f tests/service.yaml
 kubectl apply -f tests/deployment.yaml
-
-kubectl apply -f istio/prometheus.yaml
-kubectl apply -f istio/grafana.yaml
-kubectl apply -f istio/kiali.yaml
 __step_success 3
 
 __start_step 4

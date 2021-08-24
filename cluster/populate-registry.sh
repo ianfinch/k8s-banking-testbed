@@ -22,7 +22,7 @@ done
 . ./cluster/images-istio.sh
 
 for image in "${istioImages[@]}" ; do
-    newTag="${registryLabel}.localhost:${registryPort}/${image}"
+    newTag="${registryLabel}.localhost:${registryPort}/$( echo ${image} |  sed 's|.*/\([^/]*/.*\)|\1|' )"
     docker tag ${image} ${newTag}
     docker push ${newTag}
     docker rmi ${newTag}
