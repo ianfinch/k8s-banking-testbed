@@ -66,7 +66,11 @@ const arrayToObject = (arr, keyName) => {
 /**
  * Analyse the status of the pod and return a simple answer
  */
-const analysePodStatus = (status) => {
+const analysePodStatus = (status, markedForDeletion) => {
+
+    if (markedForDeletion) {
+        return "terminating";
+    }
 
     const analysis = status.reduce((result, item) => {
         result[item.type] = item.status;
@@ -91,8 +95,9 @@ const analysePod = (pod) => {
     return {
         name: pod.metadata.name,
         app: pod.metadata.labels.app,
+        node: pod.spec.nodeName,
         ready: {
-            status: analysePodStatus(pod.status.conditions),
+            status: analysePodStatus(pod.status.conditions, pod.metadata.deletionTimestamp),
             containers: pod.status.containerStatuses.map(container => ({
                 name: container.name,
                 status: container.ready ? "ready" : "pending",
