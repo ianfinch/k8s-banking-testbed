@@ -1,6 +1,7 @@
 #monitoring {
     font-family: monospace;
     font-size: 0.8rem;
+    line-height: 1rem;
 }
 
 #monitoring div {
@@ -21,6 +22,14 @@
 #monitoring > div > div > div:first-child {
     padding-top: 0;
     padding-left: 0;
+    padding-bottom: 0;
+}
+
+#monitoring > div > div > div:nth-child(2) {
+    padding-top: 0;
+    padding-left: 0;
+    font-size: 90%;
+    font-style: italic;
 }
 
 #logs {

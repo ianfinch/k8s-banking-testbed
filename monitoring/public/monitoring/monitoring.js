@@ -27,6 +27,7 @@ const addPod = (pod, parent, rootElem) => {
     const elem = parentElem.appendChild(document.createElement("div"));
     elem.classList.add("pod", "status-" + pod.ready.status);
     elem.appendChild(document.createElement("div")).innerText = pod.name;
+    elem.appendChild(document.createElement("div")).innerText = pod.node;
 
     pod.ready.containers.forEach(container => {
         addContainer(container, elem);

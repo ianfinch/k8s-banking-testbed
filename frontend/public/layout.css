@@ -35,6 +35,15 @@ header > h1 {
     margin: 0;
 }
 
+header > h1 > a {
+    text-decoration: none;
+    color: var(--colour-background);
+}
+
+header > h1 > a {
+    color: var(--colour-background2);
+}
+
 .nav {
     grid-area: nav;
     background: var(--colour-foreground);

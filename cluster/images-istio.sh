@@ -18,6 +18,9 @@ declare -a istioLabels=(
 
 version=$( istioctl version 2> /dev/null )
 
+# Make sure we have any patched versions we need
+./istio/kiali-patch/patch-image.sh
+
 # Function to check whether an image needs to be pulled, and add the image to
 # our list
 __check_image() {
