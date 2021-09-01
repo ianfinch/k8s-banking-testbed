@@ -9,11 +9,11 @@ spinner=0
 
 # Colours
 WHITE=$( echo -e "\033[38;2;255;255;255m" )
-GREY=$( echo -e "\033[38:5:245m" )
-GREEN=$( echo -e "\033[38:5:46m" )
-AMBER=$( echo -e "\033[38:5:166m" )
-RED=$( echo -e "\033[38:5:196m" )
-BLUE=$( echo -e "\033[38:5:39m" )
+GREY=$( echo -e "\033[38;5;245m" )
+GREEN=$( echo -e "\033[38;5;46m" )
+AMBER=$( echo -e "\033[38;5;166m" )
+RED=$( echo -e "\033[38;5;196m" )
+BLUE=$( echo -e "\033[38;5;39m" )
 PLAIN=$( echo -e "\033[0m" )
 
 # Backgrounds

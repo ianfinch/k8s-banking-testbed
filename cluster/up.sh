@@ -19,11 +19,11 @@ declare -a steps=(
 
 # Colours
 WHITE=$( echo -e "\033[38;2;255;255;255m" )
-GREY=$( echo -e "\033[38:5:245m" )
-GREEN=$( echo -e "\033[38:5:46m" )
-AMBER=$( echo -e "\033[38:5:166m" )
-RED=$( echo -e "\033[38:5:196m" )
-BLUE=$( echo -e "\033[38:5:39m" )
+GREY=$( echo -e "\033[38;5;245m" )
+GREEN=$( echo -e "\033[38;5;46m" )
+AMBER=$( echo -e "\033[38;5;166m" )
+RED=$( echo -e "\033[38;5;196m" )
+BLUE=$( echo -e "\033[38;5;39m" )
 PLAIN=$( echo -e "\033[0m" )
 
 # Backgrounds
@@ -31,7 +31,7 @@ BG_WHITE=$( echo -e "\033[48;2;255;255;255m" )
 BG_SOLARIZED=$( echo -e "\033[48;2;0;43;54m" )
 
 # Icons
-PENDING=$( echo -e "\u23fb" )
+PENDING=$( echo -e "\u2505" )
 RUNNING=$( echo -e "\u2692" )
 TICK=$( echo -e "\u2714" )
 CROSS=$( echo -e "\u2718" )
