@@ -9,7 +9,8 @@ ports:
     nodeFilters:
       - loadbalancer
 registries:
-  create: true
+  use:
+    - k3d-banking-registry:5000
 options:
   k3s:
     extraServerArgs:

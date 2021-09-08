@@ -8,6 +8,14 @@ if [[ $( k3d cluster list | grep "banking" ) ]] ; then
     exit
 fi
 
+# Create a local cache registry if it's not already available
+cacheRegistry="k3d-banking-registry"
+if [[ ! $( k3d registry list | grep $cacheRegistry ) ]] ; then
+    echo "No registry found to act as cache of standard images"
+    echo "Creating now"
+    ./cluster/registry-up.sh
+fi
+
 # The steps we need to execute
 declare -a steps=(
     "Create K3D cluster"
@@ -152,15 +160,15 @@ __clear_output
 __step_success 1
 
 __start_step 2
-istioctl install --set profile=default --set hub="k3d-banking-registry:5000/istio" -y
+istioctl install --set profile=default --set hub="${cacheRegistry}:5000/istio" -y
 kubectl apply -f cluster/ingress.yaml
 kubectl apply -f cluster/namespaces.yaml
 kubectl label namespace default istio-injection=enabled
 kubectl label namespace operations istio-injection=enabled
 
-cat istio/prometheus.yaml | sed -E 's/(image(_name)?: *"?)/\1k3d-banking-registry:5000\//' | kubectl apply -f -
-cat istio/grafana.yaml | sed -E 's/(image(_name)?: *"?)/\1k3d-banking-registry:5000\//' | kubectl apply -f -
-cat istio/kiali.yaml | sed -E 's/(image(_name)?: *"?)quay\.io/\1k3d-banking-registry:5000/' | kubectl apply -f -
+cat istio/prometheus.yaml | sed -E "s/(image(_name)?: *\"?)/\1${cacheRegistry}:5000\//" | kubectl apply -f -
+cat istio/grafana.yaml | sed -E "s/(image(_name)?: *\"?)/\1${cacheRegistry}:5000\//" | kubectl apply -f -
+cat istio/kiali.yaml | sed -E "s/(image(_name)?: *\"?)quay\.io/\1${cacheRegistry}:5000/" | kubectl apply -f -
 __step_success 2
 
 __start_step 3
