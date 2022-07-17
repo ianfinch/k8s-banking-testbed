@@ -1,0 +1,11 @@
+- op: add
+  path: /spec/http/0
+  value:
+    match:
+    - uri:
+        prefix: /argocd
+    route:
+    - destination:
+        host: argocd-service
+        port:
+          number: 80
